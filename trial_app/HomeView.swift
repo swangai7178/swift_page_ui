@@ -1,20 +1,11 @@
 import SwiftUI
 
-struct Match: Identifiable {
-    let id = UUID()
-    let homeTeam: String
-    let awayTeam: String
-    let homeScore: Int
-    let awayScore: Int
-    let status: String
-}
-
 struct HomeView: View {
 
     let matches: [Match] = [
-        Match(homeTeam: "Liverpool", awayTeam: "Manchester City", homeScore: 2, awayScore: 1, status: "Live"),
-        Match(homeTeam: "Chelsea", awayTeam: "Arsenal", homeScore: 0, awayScore: 0, status: "Upcoming"),
-        Match(homeTeam: "Real Madrid", awayTeam: "Barcelona", homeScore: 1, awayScore: 1, status: "Live")
+        Match(id: 1, homeTeam: "Liverpool", awayTeam: "Manchester City", homeScore: 2, awayScore: 1, status: "Live"),
+        Match(id: 2, homeTeam: "Chelsea", awayTeam: "Arsenal", homeScore: 0, awayScore: 0, status: "Upcoming"),
+        Match(id: 3, homeTeam: "Real Madrid", awayTeam: "Barcelona", homeScore: 1, awayScore: 1, status: "Live")
     ]
 
     var body: some View {
@@ -124,13 +115,13 @@ struct MatchCard: View {
                 // Score + status
                 VStack(alignment: .trailing, spacing: 8) {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text("\(match.homeScore)")
-                        Text("-")
-                            .foregroundStyle(.white.opacity(0.7))
-                        Text("\(match.awayScore)")
+                        let h = match.homeScore ?? 0
+                        let a = match.awayScore ?? 0
+                        Text("\(h) - \(a)")
+                            .font(.title2)
+                            .bold()
+                            .foregroundColor(.white)
                     }
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
 
                     // Status badge
                     Text(match.status.uppercased())
@@ -150,7 +141,7 @@ struct MatchCard: View {
             .padding(16)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(match.homeTeam) versus \(match.awayTeam). Score \(match.homeScore) to \(match.awayScore). Status \(match.status)")
+        .accessibilityLabel("\(match.homeTeam) versus \(match.awayTeam). Score \(match.homeScore ?? 0) to \(match.awayScore ?? 0). Status \(match.status)")
     }
 }
 
