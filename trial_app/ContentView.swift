@@ -10,7 +10,7 @@ struct ContentView: View {
             ZStack {
                 backgroundView
 
-                VStack(spacing: 36) {
+                VStack(spacing: 32) {
                     Spacer(minLength: 10)
 
                     // Hero Card
@@ -18,7 +18,7 @@ struct ContentView: View {
                         .padding(.horizontal, 24)
 
                     // Buttons
-                    VStack(spacing: 16) {
+                    VStack(spacing: 14) {
                         PrimaryCTA(title: "Login", systemImage: "arrow.right.circle.fill") {
                             showLogin = true
                         }
@@ -30,7 +30,7 @@ struct ContentView: View {
                         .padding(.horizontal, 24)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 20)
 
                     // Hidden Navigation Links
                     NavigationLink(destination: LoginView(), isActive: $showLogin) { EmptyView() }
@@ -39,25 +39,41 @@ struct ContentView: View {
                     // Footer
                     Text("Follow football matches live")
                         .font(.footnote)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.72))
                         .padding(.bottom, 12)
                 }
                 .padding(.vertical, 24)
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
     private var backgroundView: some View {
         let gradient = LinearGradient(colors: [
-            Color(red: 0.08, green: 0.08, blue: 0.12),
-            Color(red: 0.05, green: 0.05, blue: 0.09),
+            Color(red: 0.06, green: 0.07, blue: 0.11),
+            Color(red: 0.05, green: 0.06, blue: 0.10),
             Color.black
         ], startPoint: .topLeading, endPoint: .bottomTrailing)
-        let vignette = RadialGradient(colors: [Color.white.opacity(0.06), .clear], center: .topLeading, startRadius: 10, endRadius: 420)
+
+        let vignette = RadialGradient(colors: [Color.white.opacity(0.08), .clear], center: .topLeading, startRadius: 10, endRadius: 460)
+
+        let starNoise = Rectangle()
+            .fill(
+                AngularGradient(gradient: Gradient(colors: [
+                    Color.white.opacity(0.10),
+                    Color.white.opacity(0.02),
+                    Color.white.opacity(0.10)
+                ]), center: .center)
+            )
+            .blendMode(.softLight)
+            .opacity(0.08)
+
         return ZStack {
-            gradient.ignoresSafeArea()
-            vignette.ignoresSafeArea()
+            gradient
+            vignette
+            starNoise
         }
+        .ignoresSafeArea()
     }
 }
 
@@ -67,37 +83,54 @@ private struct HeroCard: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
+
         VStack(spacing: 18) {
             ZStack {
+                // Accent ring
                 Circle()
-                    .fill(Color.white.opacity(0.06))
+                    .strokeBorder(
+                        AngularGradient(gradient: Gradient(colors: [
+                            Color.green.opacity(0.9),
+                            Color.blue.opacity(0.9),
+                            Color.purple.opacity(0.9),
+                            Color.green.opacity(0.9)
+                        ]), center: .center), lineWidth: 2
+                    )
+                    .frame(width: 118, height: 118)
+                    .blur(radius: 0.2)
+                    .opacity(0.9)
+                    .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 12)
+                    .scaleEffect(animate ? 1.02 : 0.98)
+                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: animate)
+
+                Circle()
+                    .fill(.ultraThinMaterial)
                     .frame(width: 110, height: 110)
-                    .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
-                    .shadow(color: .black.opacity(0.4), radius: 16, x: 0, y: 12)
-                    .scaleEffect(animate ? 1 : 0.98)
-                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: animate)
+                    .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                    .shadow(color: .black.opacity(0.35), radius: 14, x: 0, y: 10)
 
                 Image(systemName: "soccerball.inverse")
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.white)
-                    .font(.system(size: 48, weight: .semibold))
-                    .rotationEffect(.degrees(animate ? 2 : -2))
-                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: animate)
+                    .font(.system(size: 50, weight: .semibold))
+                    .rotationEffect(.degrees(animate ? 4 : -4))
+                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: animate)
             }
 
-            Text("GoalTracker")
-                .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                .foregroundStyle(.white)
-
-            Text("Your home for live scores, stats, and more")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.75))
+            VStack(spacing: 4) {
+                Text("GoalTracker")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .foregroundStyle(.white)
+                Text("Your home for live scores, stats, and more")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.78))
+            }
         }
         .padding(24)
-        .background(Color.white.opacity(0.06))
+        .background(.ultraThinMaterial)
+        .overlay(shape.strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
         .clipShape(shape)
-        .overlay(shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
-        .shadow(color: .black.opacity(0.35), radius: 18, x: 0, y: 14)
+        .shadow(color: .black.opacity(0.45), radius: 20, x: 0, y: 16)
         .onAppear { animate = true }
     }
 }
@@ -108,26 +141,37 @@ private struct PrimaryCTA: View {
     let systemImage: String
     let action: () -> Void
 
+    @State private var isPressed = false
+
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
         Button(action: action) {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: systemImage)
                     .font(.system(size: 18, weight: .semibold))
                 Text(title)
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .font(.headline.weight(.bold))
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(
-                LinearGradient(colors: [Color.white, Color.white.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [Color.white, Color.white.opacity(0.88)], startPoint: .top, endPoint: .bottom)
             )
             .foregroundStyle(.black)
             .clipShape(shape)
-            .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 8)
-            .overlay(shape.strokeBorder(Color.white.opacity(0.2), lineWidth: 1))
+            .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 10)
+            .overlay(
+                shape.strokeBorder(
+                    LinearGradient(colors: [Color.white.opacity(0.6), Color.white.opacity(0.2)], startPoint: .top, endPoint: .bottom),
+                    lineWidth: 1
+                )
+            )
         }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.98 : 1)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) { isPressed = pressing }
+        }, perform: {})
     }
 }
 
@@ -136,21 +180,33 @@ private struct SecondaryCTA: View {
     let systemImage: String
     let action: () -> Void
 
+    @State private var isPressed = false
+
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
         Button(action: action) {
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: systemImage)
                 Text(title)
             }
             .font(.headline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(Color.white.opacity(0.10))
+            .background(
+                Color.white.opacity(0.12)
+                    .overlay(
+                        LinearGradient(colors: [Color.white.opacity(0.08), Color.clear], startPoint: .top, endPoint: .bottom)
+                    )
+            )
             .foregroundStyle(.white)
             .clipShape(shape)
-            .overlay(shape.strokeBorder(Color.white.opacity(0.22), lineWidth: 1))
+            .overlay(shape.strokeBorder(Color.white.opacity(0.28), lineWidth: 1))
         }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.985 : 1)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) { isPressed = pressing }
+        }, perform: {})
     }
 }
 
@@ -158,3 +214,4 @@ private struct SecondaryCTA: View {
     ContentView()
         .preferredColorScheme(.dark)
 }
+
